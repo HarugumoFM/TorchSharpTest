@@ -6,13 +6,15 @@ using TorchSharp.Modules;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Text;
-using ConsoleML.Models;
+using Shimotsuki.Models;
+
+
 // See https://aka.ms/new-console-template for more information
 
 var langE = new Lang();
 var langF = new Lang();
 var pairs = new List<string[]>();
-int maxPairs = 1000;
+int maxPairs = 1500;
 //read English-Francis Pair
 using (var reader = new StreamReader("eng-fra.txt")) {
     string line;
@@ -36,14 +38,14 @@ Console.WriteLine(langF.word2Index.Count+" Frances words");
 
 int hiddenSize = 128;
 
-var model = new Seq2Seq(langE.word2Index.Count, hiddenSize, langF.word2Index.Count);
+var model = new AttnSeq2Seq(langE.word2Index.Count, hiddenSize, langF.word2Index.Count);
 
 model.LangE = langE;
 model.LangF = langF;
 
 model.trainAll(pairs, 10);
 
-var model2 = new Seq2Seq(langE.word2Index.Count, hiddenSize, langF.word2Index.Count);
+var model2 = new AttnSeq2Seq(langE.word2Index.Count, hiddenSize, langF.word2Index.Count);
 
 model2.load("model.bin");
 
@@ -104,51 +106,6 @@ static Tensor tensorFromSentence(Lang lang, string sentence) {
     return tensor(index).view(new long[] { -1, 1 });
 }
 
-/// Class
-
-class Lang: Module {
-
-    public Dictionary<string, long> word2Index;
-    public Dictionary<string, long> word2Count;
-    public Dictionary<int, string> index2Word;
-    int nWords = 0;
-
-    public Lang():base("dictionary") {
-        this.word2Index = new Dictionary<string, long>();
-        this.word2Count = new Dictionary<string, long>();
-        this.index2Word = new Dictionary<int, string>();
-        addWord("SOS");
-        addWord("EOS");
-        addWord(" ");
-        RegisterComponents();
-    }
-
-    /// <summary>
-    /// 単語の追加
-    /// </summary>
-    /// <param name="word"></param>
-    public void addWord(string word) {
-        if (!word2Index.ContainsKey(word)) {
-            this.word2Index.Add(word, nWords);
-            this.word2Count.Add(word, 1);
-            this.index2Word.Add(nWords, word);
-            nWords++;
-        }
-        else {
-            this.word2Count[word]++;
-        }
-    }
-
-    /// <summary>
-    /// 文章を登録する
-    /// </summary>
-    /// <param name="sentence">文章をstringのListにしたもの</param>
-    public void addSentence(string sentence) {
-        foreach (var word in sentence.Split()) {
-            this.addWord(word);
-        }
-    }
-}
 
 
 /// Model

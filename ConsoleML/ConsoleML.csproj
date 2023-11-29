@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -22,6 +22,10 @@
   <ItemGroup>
     <PackageReference Include="libtorch-cuda-11.7-win-x64" Version="1.13.0.1" />
     <PackageReference Include="Microsoft.ML.TorchSharp" Version="0.21.0-preview.23266.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shimotsuki\Shimotsuki.csproj" />
   </ItemGroup>
 
 </Project>

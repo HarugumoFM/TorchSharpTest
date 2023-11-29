@@ -6,8 +6,8 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Text;
 
-namespace ConsoleML.Models {
-    internal class Seq2Seq : Module {
+namespace Shimotsuki.Models {
+    public class Seq2Seq : Module {
 
         private Encoder encoder;
         private Decoder decoder;
@@ -166,6 +166,7 @@ namespace ConsoleML.Models {
                     }
                     int length = study.Count;
                     bool res = true;
+
                     for (int i = 0; i < length; i++) {
                         if (study[i] != answer[i]) {
                             res = false;
