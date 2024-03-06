@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="libtorch-cuda-11.7-win-x64" Version="1.13.0.1" />
-    <PackageReference Include="Microsoft.ML.TorchSharp" Version="0.21.0-preview.23266.6" />
+    <PackageReference Include="libtorch-cpu" Version="2.2.1.1" />
+    <PackageReference Include="TorchSharp" Version="0.102.2" />
   </ItemGroup>
 
   <ItemGroup>
