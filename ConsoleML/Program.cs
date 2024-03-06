@@ -14,7 +14,7 @@ using Shimotsuki.Models;
 var langE = new Lang();
 var langF = new Lang();
 var pairs = new List<string[]>();
-int maxPairs = 1500;
+int maxPairs = 500;
 //read English-Francis Pair
 using (var reader = new StreamReader("eng-fra.txt")) {
     string line;
@@ -122,7 +122,7 @@ class Net:nn.Module
     public Tensor forward(Tensor x)
     {
         x = linear1.forward(x);
-        x = functional.Sigmoid(x);
+        x = functional.sigmoid(x);
         return linear2.forward(x);
     }
 

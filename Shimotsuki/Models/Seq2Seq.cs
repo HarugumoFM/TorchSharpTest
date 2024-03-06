@@ -127,13 +127,13 @@ namespace Shimotsuki.Models {
                     var outputLength = target.size(0);
 
 
-                    var encoderOutputs = zeros(10, hiddenSize * 2);
+                    var encoderOutputs = zeros(10, hiddenSize);
                     Tensor loss = 0;
                     for (int i = 0; i < inputLength; i++) {
                         (var output, encoderHidden) = encoder.forward(input[i], encoderHidden);
                         //encoderOutputs[i] = output[0, 0];
                     }
-                    encoderHidden = encoderHidden.reshape(new long[] { 1, 1, hiddenSize * 2 });
+                    encoderHidden = encoderHidden.reshape(new long[] { 1, 1, hiddenSize});
 
                     var answer = new List<long>();
                     var study = new List<long>();

@@ -12,7 +12,7 @@ namespace Shimotsuki.Models {
         public Encoder(int inputSize, int hiddenSize) : base("encoder") {
             this.hiddenSize = hiddenSize;
             this.embedding = Embedding(inputSize, hiddenSize);
-            this.gru = GRU(hiddenSize, hiddenSize, bidirectional: true);
+            this.gru = GRU(hiddenSize, hiddenSize);
             RegisterComponents();//パラメータを登録する(optimizer用)
         }
 
@@ -33,7 +33,7 @@ namespace Shimotsuki.Models {
         }
 
         public Tensor InitHidden() {
-            return torch.zeros(2, 1, hiddenSize);
+            return torch.zeros(1, 1, hiddenSize);
         }
     }
 }

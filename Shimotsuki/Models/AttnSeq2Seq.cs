@@ -10,6 +10,7 @@ namespace Shimotsuki.Models {
     public class AttnSeq2Seq : Module {
 
         private Encoder encoder;
+        private Encoder reverse;
         private AttnDecoder decoder;
         int hiddenSize;
         public Lang LangE;
@@ -19,7 +20,8 @@ namespace Shimotsuki.Models {
             LangF = new Lang();
             this.hiddenSize = hiddenSize;
             this.encoder = new Encoder(inputSize, hiddenSize);
-            this.decoder = new AttnDecoder(hiddenSize * 2, outputSize);
+            this.reverse = new Encoder(inputSize, hiddenSize);
+            this.decoder = new AttnDecoder(hiddenSize, outputSize);
             RegisterComponents();
         }
 
@@ -27,15 +29,17 @@ namespace Shimotsuki.Models {
 
             this.eval();
             var encoderHidden = encoder.InitHidden();
+            var reverseHidden = reverse.InitHidden();
             var res = new List<string>();
             var inputLength = input.size(0);
 
-            var encoderOutputs = zeros(inputLength, hiddenSize * 2);
+            var encoderOutputs = zeros(inputLength, hiddenSize);
             for (int i = 0; i < inputLength; i++) {
                 (var output, encoderHidden) = encoder.forward(input[i], encoderHidden);
-                encoderOutputs[i] = output[0, 0];
+                (var output2, reverseHidden) = reverse.forward(input[inputLength - i-1],reverseHidden);
+                encoderOutputs[i] = output[0, 0] + output2[0,0];
             }
-            encoderHidden = encoderHidden.reshape(new long[] { 1, 1, hiddenSize * 2 });
+            encoderHidden = encoderHidden.reshape(new long[] { 1, 1, hiddenSize });
             input = torch.tensor(0);
             for (int i = 0; i < maxLength; i++) {
                 (var output, encoderHidden) = decoder.forward(input, encoderHidden, encoderOutputs);
@@ -121,6 +125,7 @@ namespace Shimotsuki.Models {
 
                 double train(Tensor input, Tensor target) {
                     var encoderHidden = encoder.InitHidden();
+                    var reverseHidden = reverse.InitHidden();
                     Random rand = new Random();
                     encOptim.zero_grad();
                     decOptim.zero_grad();
@@ -128,13 +133,14 @@ namespace Shimotsuki.Models {
                     var outputLength = target.size(0);
 
 
-                    var encoderOutputs = zeros(inputLength, hiddenSize * 2);
+                    var encoderOutputs = zeros(inputLength, hiddenSize);
                     Tensor loss = 0;
                     for (int i = 0; i < inputLength; i++) {
                         (var output, encoderHidden) = encoder.forward(input[i], encoderHidden);
-                        encoderOutputs[i] += output[0, 0];
+                        (var output2, reverseHidden) = reverse.forward(input[inputLength-i-1], reverseHidden);
+                        encoderOutputs[i] += output[0, 0] + output2[0,0];
                     }
-                    encoderHidden = encoderHidden.reshape(new long[] { 1, 1, hiddenSize * 2 });
+                    encoderHidden = encoderHidden.reshape(new long[] { 1, 1, hiddenSize});
 
                     var answer = new List<long>();
                     var study = new List<long>();
