@@ -22,6 +22,7 @@
   <ItemGroup>
     <PackageReference Include="libtorch-cpu" Version="2.2.1.1" />
     <PackageReference Include="TorchSharp" Version="0.102.2" />
+    <PackageReference Include="TorchVision" Version="0.102.2" />
   </ItemGroup>
 
   <ItemGroup>

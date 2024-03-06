@@ -7,105 +7,126 @@ using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Text;
 using Shimotsuki.Models;
+using System.Data;
+using static Function;
+
+nnTest();
 
 
-// See https://aka.ms/new-console-template for more information
 
-var langE = new Lang();
-var langF = new Lang();
-var pairs = new List<string[]>();
-int maxPairs = 500;
-//read English-Francis Pair
-using (var reader = new StreamReader("eng-fra.txt")) {
-    string line;
-    int i = 0;
-    while((line = reader.ReadLine()) !=null){
-        var pair = line.Split('	');
 
-        if (pair[0].Split().Length < 8 && pair[0].Split().Length >3 &&  pair[1].Split().Length < 8) {
-            langE.addSentence(NormalizeString(pair[0]));
-            langF.addSentence(NormalizeString(pair[1]));
-            i++;
-            pairs.Add(pair);
+trainFashionMNIST();
+
+//train function
+
+void trainFashionMNIST()
+{
+    //starting download
+    Console.WriteLine("start download data");
+    var datasetPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    var train_data = torchvision.datasets.FashionMNIST(datasetPath, true, download: true);
+    var test_data = torchvision.datasets.FashionMNIST(datasetPath, false, download: true);
+    Console.WriteLine("success download data");
+
+
+}
+
+void trainSeq2Seq() {
+
+    var langE = new Lang();
+    var langF = new Lang();
+    var pairs = new List<string[]>();
+    int maxPairs = 500;
+    //read English-Francis Pair
+    using (var reader = new StreamReader("eng-fra.txt")) {
+        string line;
+        int i = 0;
+        while ((line = reader.ReadLine()) != null) {
+            var pair = line.Split('	');
+
+            if (pair[0].Split().Length < 8 && pair[0].Split().Length > 3 && pair[1].Split().Length < 8) {
+                langE.addSentence(NormalizeString(pair[0]));
+                langF.addSentence(NormalizeString(pair[1]));
+                i++;
+                pairs.Add(pair);
+            }
+            if (maxPairs == i)
+                break;
         }
-        if (maxPairs == i)
+    }
+    Console.WriteLine("get " + pairs.Count + " pairs");
+    Console.WriteLine(langE.word2Index.Count + " English words");
+    Console.WriteLine(langF.word2Index.Count + " Frances words");
+
+    int hiddenSize = 128;
+
+    var model = new AttnSeq2Seq(langE.word2Index.Count, hiddenSize, langF.word2Index.Count);
+
+    model.LangE = langE;
+    model.LangF = langF;
+
+    model.trainAll(pairs, 10);
+
+    var model2 = new AttnSeq2Seq(langE.word2Index.Count, hiddenSize, langF.word2Index.Count);
+
+    model2.load("model.bin");
+
+    model2.LangE = langE;
+    model2.LangF = langF;
+    int index = 0;
+    foreach (var pair in pairs) {
+        Console.WriteLine(string.Join(" ", pair[0]));
+        no_grad();
+        var input = tensorFromSentence(model2.LangE, NormalizeString(pair[0]));
+        Console.WriteLine("answer: " + pair[1]);
+        Console.WriteLine("predict: " + model2.evaluate(input, 10));
+        index++;
+        if (index > 30)
             break;
     }
-}
-Console.WriteLine("get " + pairs.Count + " pairs");
-Console.WriteLine(langE.word2Index.Count+" English words");
-Console.WriteLine(langF.word2Index.Count+" Frances words");
-
-int hiddenSize = 128;
-
-var model = new AttnSeq2Seq(langE.word2Index.Count, hiddenSize, langF.word2Index.Count);
-
-model.LangE = langE;
-model.LangF = langF;
-
-model.trainAll(pairs, 10);
-
-var model2 = new AttnSeq2Seq(langE.word2Index.Count, hiddenSize, langF.word2Index.Count);
-
-model2.load("model.bin");
-
-model2.LangE = langE;
-model2.LangF = langF;
-int index = 0;
-foreach(var pair in pairs) {
-    Console.WriteLine(string.Join(" ",pair[0]));
-    no_grad();
-    var input = tensorFromSentence(model2.LangE, NormalizeString(pair[0]));
-    Console.WriteLine("answer: "+ pair[1]);
-    Console.WriteLine("predict: " + model2.evaluate(input, 10));
-    index++;
-    if (index > 30)
-        break;
-}
 
 
 
 
 
+    ///Function
+    static string UnicodeToAscii(string s) {
+        string normalizedString = s.Normalize(NormalizationForm.FormKD);
+        StringBuilder stringBuilder = new StringBuilder();
 
-
-///Function
-static string UnicodeToAscii(string s) {
-    string normalizedString = s.Normalize(NormalizationForm.FormKD);
-    StringBuilder stringBuilder = new StringBuilder();
-
-    foreach (char c in normalizedString) {
-        UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-        if (unicodeCategory != UnicodeCategory.NonSpacingMark) {
-            stringBuilder.Append(c);
+        foreach (char c in normalizedString) {
+            UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != UnicodeCategory.NonSpacingMark) {
+                stringBuilder.Append(c);
+            }
         }
+
+        return stringBuilder.ToString();
     }
 
-    return stringBuilder.ToString();
-}
 
-
-static string NormalizeString(string s) {
-    s = UnicodeToAscii(s.ToLower().Trim());
-    s = Regex.Replace(s, @"([.!?])", @" $1");
-    s = Regex.Replace(s, @"[^a-zA-Z.!?]+", " ");
-    return s;
-}
-
-static List<long> indexesFromSentence(Lang lang, string sentence) {
-    var res = new List<long>();
-    foreach (var word in sentence.Split()) {
-        res.Add(lang.word2Index[word]);
+    static string NormalizeString(string s) {
+        s = UnicodeToAscii(s.ToLower().Trim());
+        s = Regex.Replace(s, @"([.!?])", @" $1");
+        s = Regex.Replace(s, @"[^a-zA-Z.!?]+", " ");
+        return s;
     }
-    return res;
-}
 
-static Tensor tensorFromSentence(Lang lang, string sentence) {
-    var index = indexesFromSentence(lang, sentence);
-    index.Add(1);
-    return tensor(index).view(new long[] { -1, 1 });
-}
+    static List<long> indexesFromSentence(Lang lang, string sentence) {
+        var res = new List<long>();
+        foreach (var word in sentence.Split()) {
+            res.Add(lang.word2Index[word]);
+        }
+        return res;
+    }
 
+    static Tensor tensorFromSentence(Lang lang, string sentence) {
+        var index = indexesFromSentence(lang, sentence);
+        index.Add(1);
+        return tensor(index).view(new long[] { -1, 1 });
+    }
+
+}
 
 
 /// Model
@@ -141,15 +162,18 @@ internal class Function
         //テストデータ作成
         var trainData = new float[,]
         {
-    { 0, 0 },
-    { 1, 0 },
-    { 0, 1 },
-    { 1, 1 },
+           { 0, 0 },
+           { 1, 0 },
+           { 0, 1 },
+           { 1, 1 },
         };
         //ラベル
         var trainLabel = new float[,]
         {
-    {0},{1},{1},{0},
+            {0},
+            {1},
+            {1},
+            {0},
         };
         var model = new Net();
         model.train();
@@ -169,8 +193,21 @@ internal class Function
             optimizer.zero_grad();
             loss.backward();
             optimizer.step();
-            if (ep % 100 == 0)
+            if (ep % 500 == 0)
+            {
                 Console.WriteLine($"Epoch:{ep} Loss:{loss.ToSingle()}");
+                model.eval();
+                Console.Write("x1:0,x2:0 result:");
+                model.forward(torch.tensor(new float[] { 0, 0 })).print();
+                Console.Write("x1:0,x2:1 result:");
+                model.forward(torch.tensor(new float[] { 0, 1 })).print();
+                Console.Write("x1:1,x2:0 result:");
+                model.forward(torch.tensor(new float[] { 1, 0 })).print();
+                Console.Write("x1:1,x2:1 result:");
+                model.forward(torch.tensor(new float[] { 1, 1 })).print();
+                
+                model.train();
+            }
         }
         //評価１
         model.eval();
