@@ -16,6 +16,14 @@ namespace Shimotsuki.Models {
             RegisterComponents();//パラメータを登録する(optimizer用)
         }
 
+        public Encoder(int inputSize, int hiddenSize, Embedding embedding) : base("encoder")
+        {
+            this.hiddenSize = hiddenSize;
+            this.embedding = embedding;
+            this.gru = GRU(hiddenSize, hiddenSize);
+            RegisterComponents();//パラメータを登録する(optimizer用)
+        }
+
         public (Tensor, Tensor) forward(Tensor input, Tensor hidden, bool debug = false) {
             if (debug)
                 Console.WriteLine("入力単語" + input);

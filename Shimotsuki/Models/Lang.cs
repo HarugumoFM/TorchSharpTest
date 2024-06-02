@@ -3,7 +3,7 @@ using static TorchSharp.torch.nn;
 
 namespace Shimotsuki.Models
 {
-    public class Lang : Module
+    public class Lang
     {
 
         public Dictionary<string, long> word2Index;
@@ -11,7 +11,7 @@ namespace Shimotsuki.Models
         public Dictionary<int, string> index2Word;
         int nWords = 0;
 
-        public Lang() : base("dictionary")
+        public Lang()
         {
             this.word2Index = new Dictionary<string, long>();
             this.word2Count = new Dictionary<string, long>();
@@ -19,7 +19,6 @@ namespace Shimotsuki.Models
             addWord("SOS");
             addWord("EOS");
             addWord(" ");
-            RegisterComponents();
         }
 
         /// <summary>
