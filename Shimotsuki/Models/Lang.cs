@@ -18,7 +18,7 @@ namespace Shimotsuki.Models
             this.index2Word = new Dictionary<int, string>();
             addWord("SOS");
             addWord("EOS");
-            addWord(" ");
+            addWord("＊");
         }
 
         /// <summary>
