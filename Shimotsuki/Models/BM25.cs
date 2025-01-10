@@ -1,7 +1,6 @@
 ﻿using TorchSharp;
 using static TorchSharp.torch;
 using static TorchSharp.torch.nn;
-using TorchSharp.Modules;
 
 namespace Shimotsuki.Models {
     /// <summary>
@@ -21,5 +20,7 @@ namespace Shimotsuki.Models {
 
             RegisterComponents();//パラメータを登録する(optimizer用)
         }
+
+
     }
 }

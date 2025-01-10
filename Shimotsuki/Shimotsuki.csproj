@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,8 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="TorchSharp" Version="0.102.6" />
-    <PackageReference Include="TorchVision" Version="0.102.6" />
+    <PackageReference Include="LibNMeCab" Version="0.10.2" />
+    <PackageReference Include="TorchSharp" Version="0.105.0" />
+    <PackageReference Include="TorchVision" Version="0.105.0" />
   </ItemGroup>
 
 </Project>
