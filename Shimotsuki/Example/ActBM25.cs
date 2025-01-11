@@ -1,4 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.Serialization;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
 using NMeCab;
 using Shimotsuki.Models;
 using TorchSharp;
@@ -16,6 +19,9 @@ namespace Shimotsuki.Example
                                 "明日の天気は？",
                                 "明後日の天気は？",
                                 "あさっての天気は？",
+                                "明日の予定は？",
+                                "明後日の予定は？",
+                                "今日の予定は?",
                                 "d月d日の予定は？",
                                 "次の予定は？",
                                 "d日の予定は？"
@@ -69,6 +75,7 @@ namespace Shimotsuki.Example
             var lang = new Lang(word2Index, index2Word);
             //bm.Bm.print();
             bm.save("bm.bin");
+            Write(lang, "bmLang.bin");
             Console.WriteLine("parameter saved");
 
             var bm2 = new BM25(index, list.Count, 2.0, 0.75);
@@ -82,10 +89,12 @@ namespace Shimotsuki.Example
             v.print();
             Console.WriteLine("calc Cosine similarity");
             //コサイン類似度計算
-            var similarities = functional.cosine_similarity(bm.Bm, v);
+            var similarities = functional.cosine_similarity(bm2.Bm, v);
             similarities.print();
             var max = similarities.max();
-            var maxIndex = torch.argmax(similarities).print() ;
+            var maxIndex = torch.argmax(similarities);
+            max.print();
+            maxIndex.print();
             Console.WriteLine($"index:{max} value:{maxIndex}");
 
 
@@ -138,6 +147,8 @@ namespace Shimotsuki.Example
 
             Tensor calcBM(string text)
             {
+                Console.WriteLine(index);
+                Console.WriteLine(wordsCount);
                 var vec = zeros(new long[] { index });
                 var wCount = new long[index2Word.Count];
                 MeCabNode node = tagger.Parse(text)[0];
@@ -156,7 +167,7 @@ namespace Shimotsuki.Example
                     }
                     node = node.Next;
                 }
-                double bmconst = bm.K1 * (1.0 - bm2.B + bm2.B * (double)(wx * list.Count) / wordsCount);
+                double bmconst = bm2.K1 * (1.0 - bm2.B + bm2.B * (double)(wx * list.Count) / wordsCount);
                 for (int j = 0; j < index; j++)
                 {
                     if (wCount[j] == 0)
@@ -167,7 +178,19 @@ namespace Shimotsuki.Example
                 return vec;
             }
 
+            void Write<T>(T instace, string filePath)
+            {
+                var settings = new XmlWriterSettings
+                {
+                    Encoding = new UTF8Encoding(false)
+                };
 
+                var serializer = new DataContractSerializer(typeof(T));
+                using (var writer = XmlWriter.Create(filePath, settings))
+                {
+                    serializer.WriteObject(writer, instace);
+                }
+            }
         }
     }
 }

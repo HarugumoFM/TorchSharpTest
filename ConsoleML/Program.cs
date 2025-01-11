@@ -8,6 +8,6 @@ using static TorchSharp.torch.nn;
 
 //FashionMNIST.Main();
 
-ActBM25.Main("10日の予定は？");
+ActBM25.Main("9月１０日の予定は？");
 
 
