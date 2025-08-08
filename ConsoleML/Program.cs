@@ -9,7 +9,7 @@ using static TorchSharp.torch.nn;
 //FashionMNIST.Main();
 
 //ActBM25.Main("9月１０日の予定は？");
-TestMinGRU3Layer.TestMinGRU3LayerImplementation();
+//TestMinGRU3Layer.TestMinGRU3LayerImplementation();
 MinGRUChatbot.Main();
 
 

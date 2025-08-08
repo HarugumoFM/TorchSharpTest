@@ -9,18 +9,18 @@ namespace Shimotsuki.Models {
         int hiddenSize;
         int numLayers;
         Embedding embedding;
-        List<MinGRU> mingruLayers;
+        MinGRU mingru1;
+        MinGRU mingru2;
+        MinGRU mingru3;
         Linear outLinear;
 
         public MinGRUDecoder(int hiddenSize, int outputSize, int numLayers = 3) : base("mingru_decoder") {
             this.hiddenSize = hiddenSize;
             this.numLayers = numLayers;
             this.embedding = Embedding(outputSize, hiddenSize);
-            this.mingruLayers = new List<MinGRU>();
-            
-            for (int i = 0; i < numLayers; i++) {
-                this.mingruLayers.Add(new MinGRU(hiddenSize, hiddenSize));
-            }
+            this.mingru1 = new MinGRU(hiddenSize, hiddenSize);
+            this.mingru2 = new MinGRU(hiddenSize, hiddenSize);
+            this.mingru3 = new MinGRU(hiddenSize, hiddenSize);
             this.outLinear = Linear(hiddenSize, outputSize);
             RegisterComponents();
         }
@@ -29,11 +29,9 @@ namespace Shimotsuki.Models {
             this.hiddenSize = hiddenSize;
             this.numLayers = numLayers;
             this.embedding = sharedEmbedding;
-            this.mingruLayers = new List<MinGRU>();
-            
-            for (int i = 0; i < numLayers; i++) {
-                this.mingruLayers.Add(new MinGRU(hiddenSize, hiddenSize));
-            }
+            this.mingru1 = new MinGRU(hiddenSize, hiddenSize);
+            this.mingru2 = new MinGRU(hiddenSize, hiddenSize);
+            this.mingru3 = new MinGRU(hiddenSize, hiddenSize);
             this.outLinear = Linear(hiddenSize, outputSize);
             RegisterComponents();
         }
@@ -53,11 +51,17 @@ namespace Shimotsuki.Models {
             var currentInput = embed.squeeze(0);
             var newHiddenStates = new List<Tensor>();
             
-            for (int i = 0; i < numLayers; i++) {
-                (var output, var newHidden) = this.mingruLayers[i].forward(currentInput, hiddenStates[i].squeeze(0));
-                currentInput = output;
-                newHiddenStates.Add(newHidden.unsqueeze(0));
-            }
+            (var output1, var newHidden1) = this.mingru1.forward(currentInput, hiddenStates[0].squeeze(0));
+            currentInput = output1;
+            newHiddenStates.Add(newHidden1.unsqueeze(0));
+            
+            (var output2, var newHidden2) = this.mingru2.forward(currentInput, hiddenStates[1].squeeze(0));
+            currentInput = output2;
+            newHiddenStates.Add(newHidden2.unsqueeze(0));
+            
+            (var output3, var newHidden3) = this.mingru3.forward(currentInput, hiddenStates[2].squeeze(0));
+            currentInput = output3;
+            newHiddenStates.Add(newHidden3.unsqueeze(0));
             
             var finalOutput = currentInput.unsqueeze(0);
 

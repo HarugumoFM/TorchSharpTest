@@ -9,7 +9,7 @@ namespace Shimotsuki.Models
         public Dictionary<string, long> word2Index;
         public Dictionary<string, long> word2Count;
         public Dictionary<long, string> index2Word;
-        int nWords = 0;
+        public int nWords = 0;
 
         public Lang()
         {
